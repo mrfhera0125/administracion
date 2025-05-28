@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bienvenido - Página de Inicio</title>
+  <style>
+    /* Reset básico y estilo general */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0;
+      display: flex;
+      background: #f4f7f9;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar (barra lateral) */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #2c3e50;
+      color: white;
+      padding-top: 20px;
+      position: fixed;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    }
+    .sidebar h2 {
+      text-align: center;
+      color: #ecf0f1;
+      margin-bottom: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 15px 25px;
+      text-decoration: none;
+      color: white;
+      font-size: 18px;
+      border-bottom: 1px solid #34495e;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #34495e;
+    }
+
+    /* Contenido principal */
+    .main-content {
+      margin-left: 250px;
+      padding: 20px 40px;
+      width: calc(100% - 250px);
+      overflow-y: auto;
+      max-height: 100vh;
+      box-sizing: border-box;
+    }
+    .main-content h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+      font-weight: 700;
+    }
+
+    /* Botones */
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    /* Biografía y textos informativos */
+    .biography {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #ecf0f1;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      line-height: 1.6;
+      color: #34495e;
+    }
+    .biography h2, .biography h3 {
+      color: #2c3e50;
+      font-weight: 700;
+    }
+    .biography h3 {
+      margin-top: 20px;
+      font-weight: 600;
+    }
+    .biography ul {
+      margin-left: 20px;
+      margin-top: 5px;
+      list-style-type: disc;
+    }
+
+    /* Imagen de cabecera con texto */
+    .header-image-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+    .header-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(50%);
+      transition: filter 0.3s ease;
+    }
+    .header-image-container:hover .header-image {
+      filter: brightness(70%);
+    }
+    .header-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 30px;
+      font-weight: bold;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+      text-align: center;
+      width: 100%;
+      user-select: none;
+    }
+
+    /* Formularios */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 400px;
+      margin: 0 auto 40px auto;
+    }
+    form input, form select {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    form input:focus, form select:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    form button {
+      margin-top: 10px;
+      align-self: center;
+      width: 150px;
+    }
+
+    /* Tabla para inventario */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      color: #2c3e50;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Scrollbar para sidebar y main content */
+    .sidebar::-webkit-scrollbar,
+    .main-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar::-webkit-scrollbar-thumb,
+    .main-content::-webkit-scrollbar-thumb {
+      background-color: #34495e;
+      border-radius: 4px;
+    }
+    .sidebar::-webkit-scrollbar-track,
+    .main-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra lateral -->
+  <div class="sidebar">
+    <h2>Panel de Navegación</h2>
+    <a id="homeButton" class="active">Inicio</a>
+    <a id="attendanceButton">Asistencia</a>
+    <a id="inventoryButton">Inventario Materiales</a>
+    <a id="settingsButton">Ajustes</a>
+    <a id="aboutButton">Acerca de</a>
+    <a id="logoutButton">Cerrar sesión</a>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <h1>Bienvenido a tu página de inicio</h1>
+
+    <!-- Imagen cabecera -->
+    <div class="header-image-container">
+      <img src="IMAGENES/IMAGE.jpg" alt="Imagen de la empresa" class="header-image" />
+      <div class="header-text">Construcciones Ortiz & Asociados</div>
+    </div>
+
+    <!-- Contenedor de contenido dinámico -->
+    <div id="content">
+      <p>Selecciona una opción en el panel lateral para ver más detalles.</p>
+    </div>
+
+    <!-- Sección Biografía -->
+    <div id="biography" class="biography" style="display: none;">
+      <h2>Construcciones Ortiz y Asociados</h2>
+      <p>
+        Construcciones Ortiz y Asociados es una empresa dedicada a la realización de obras de construcción con sede en Pereira, Colombia...
+      </p>
+      <!-- texto resumido para brevedad -->
+      <h3>Servicios Principales:</h3>
+      <ul>
+        <li>Construcción de Edificios: Desde apartamentos hasta grandes proyectos comerciales.</li>
+        <li>Obras Pequeñas: Especializada en la construcción de casas, negocios y otras obras de menor escala.</li>
+      </ul>
+      <p>
+        La empresa continúa expandiéndose, con la meta de seguir ofreciendo soluciones de construcción accesibles y eficientes...
+      </p>
+    </div>
+
+    <!-- Formulario de asistencia -->
+    <div id="attendanceForm" style="display: none;">
+      <h2>Registrar Asistencia</h2>
+      <form id="attendanceFormContent">
+        <select id="role" required>
+          <option value="">Selecciona tu rol</option>
+          <option value="Obrero">Obrero</option>
+          <option value="Ingeniero">Ingeniero</option>
+          <option value="Arquitecto">Arquitecto</option>
+          <option value="Maestro de obra">Maestro de obra</option>
+        </select>
+
+        <select id="constructionZone" required>
+          <option value="">Selecciona una zona</option>
+          <option value="Zona Norte">Zona Norte</option>
+          <option value="Zona Sur">Zona Sur</option>
+          <option value="Zona Centro">Zona Centro</option>
+          <option value="Zona Rural">Zona Rural</option>
+        </select>
+
+        <button type="submit">Registrar Asistencia y Zona</button>
+      </form>
+    </div>
+
+    <!-- Sección Inventario -->
+    <div id="inventorySection" style="display: none;">
+      <h2>Inventario de Materiales</h2>
+      <table id="materialsTable">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Cantidad Disponible</th>
+            <th>Unidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Materiales cargados dinámicamente -->
+        </tbody>
+      </table>
+
+      <h3>Registrar Uso de Material</h3>
+      <form id="useMaterialForm">
+        <select id="materialSelect" required>
+          <option value="">Selecciona un material</option>
+          <!-- Opciones cargadas dinámicamente -->
+        </select>
+
+        <input type="number" id="quantityUsed" min="1" placeholder="Cantidad a usar" required />
+
+        <button type="submit">Registrar Uso</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Configuración Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+      authDomain: "login-ad427.firebaseapp.com",
+      projectId: "login-ad427",
+      storageBucket: "login-ad427.appspot.com",
+      messagingSenderId: "115025387332",
+      appId: "1:115025387332:web:fbbff49b2ff60884c00111",
+      measurementId: "G-NNYTCBKH91"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Cambia la sección visible y activa el botón correspondiente en el sidebar
+    function showSection(sectionId) {
+      const sections = ['attendanceForm', 'biography', 'inventorySection', 'content'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = (id === sectionId) ? 'block' : 'none';
+      });
+
+      // Actualizar botones activos en sidebar
+      document.querySelectorAll('.sidebar a').forEach(a => {
+        a.classList.remove('active');
+      });
+      switch(sectionId) {
+        case 'attendanceForm': document.getElementById('attendanceButton').classList.add('active'); break;
+        case 'biography': document.getElementById('aboutButton').classList.add('active'); break;
+        case 'inventorySection': document.getElementById('inventoryButton').classList.add('active'); break;
+        default: document.getElementById('homeButton').classList.add('active');
+      }
+    }
+
+    // Mostrar contenido principal inicial
+    showSection('content');
+
+    // Manejo de navegación sidebar
+    document.getElementById('homeButton').addEventListener('click', () => {
+      showSection('content');
+      document.getElementById('content').innerHTML = `
+        <p>Bienvenido a la página principal. Usa el menú lateral para navegar.</p>
+      `;
+    });
+
+    document.getElementById('attendanceButton').addEventListener('click', () => {
+      showSection('attendanceForm');
+    });
+
+    document.getElementById('aboutButton').addEventListener('click', () => {
+      showSection('biography');
+    });
+
+    document.getElementById('inventoryButton').addEventListener('click', () => {
+      showSection('inventorySection');
+      loadMaterials();
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        alert("Has cerrado sesión.");
+        window.location.href = "index.html"; // Cambiar por tu página de login
+      });
+    });
+
+    // Función para cargar materiales desde Firestore y llenar tabla y select
+    async function loadMaterials() {
+      const materialsTableBody = document.querySelector("#materialsTable tbody");
+      const materialSelect = document.getElementById("materialSelect");
+
+      materialsTableBody.innerHTML = '';
+      materialSelect.innerHTML = '<option value="">Selecciona un material</option>';
+
+      try {
+        const snapshot = await db.collection('materiales').get();
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${data.nombre}</td>
+            <td>${data.cantidad}</td>
+            <td>${data.unidad}</td>
+          `;
+          materialsTableBody.appendChild(row);
+
+          const option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = data.nombre;
+          materialSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error al cargar materiales:", error);
+      }
+    }
+
+    // Registrar uso de material y actualizar cantidad en Firestore
+    document.getElementById('useMaterialForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const materialId = document.getElementById('materialSelect').value;
+      const quantityUsed = parseInt(document.getElementById('quantityUsed').value);
+
+      if (!materialId || quantityUsed <= 0) {
+        alert("Selecciona un material válido y una cantidad correcta.");
+        return;
+      }
+
+      try {
+        const materialRef = db.collection('materiales').doc(materialId);
+        const doc = await materialRef.get();
+        if (!doc.exists) {
+          alert("Material no encontrado.");
+          return;
+        }
+
+        const currentQty = doc.data().cantidad;
+        if (quantityUsed > currentQty) {
+          alert("Cantidad usada excede el stock disponible.");
+          return;
+        }
+
+        await materialRef.update({
+          cantidad: currentQty - quantityUsed
+        });
+
+        alert("Uso registrado con éxito.");
+        loadMaterials();
+        e.target.reset();
+      } catch (error) {
+        console.error("Error al registrar uso:", error);
+        alert("Error al registrar uso de material.");
+      }
+    });
+
+    // Registrar asistencia y zona de trabajo
+    document.getElementById('attendanceFormContent').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const role = document.getElementById('role').value;
+      const zone = document.getElementById('constructionZone').value;
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("No estás autenticado.");
+        return;
+      }
+      if (!role || !zone) {
+        alert("Por favor selecciona tu rol y la zona de trabajo.");
+        return;
+      }
+
+      try {
+        await db.collection('asistencias').add({
+          uid: user.uid,
+          email: user.email,
+          rol: role,
+          zona: zone,
+          fecha: new Date()
+        });
+        alert("Asistencia registrada correctamente.");
+        e.target.reset();
+      } catch (error) {
+        console.error("Error al registrar asistencia:", error);
+        alert("Error al registrar asistencia.");
+      }
+    });
+
+    // Verificar usuario autenticado y mostrar datos en el contenido inicial
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        // Usuario autenticado, mostrar información básica
+        const welcomeDiv = document.getElementById('content');
+        welcomeDiv.innerHTML = `
+          <h2>Hola, ${user.displayName || user.email}</h2>
+          <p>Correo: ${user.email}</p>
+          <p>Bienvenido a la aplicación.</p>
+          <p>Usa el menú lateral para registrar asistencia, gestionar inventario o ver información.</p>
+        `;
+      } else {
+        // No autenticado, redirigir a login
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
+

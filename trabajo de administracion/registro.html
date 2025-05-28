@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registrarse</title>
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    a {
+      color: #1877f2;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Registrarse</h2>
+    <form id="registerForm">
+      <input type="text" id="registerName" placeholder="Nombre Completo" required />
+      <input type="tel" id="registerPhone" placeholder="Teléfono" required />
+      <input type="email" id="registerEmail" placeholder="Correo" required />
+      <input type="password" id="registerPassword" placeholder="Contraseña" required />
+      <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="index.html">Inicia sesión aquí</a></p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ✅ Configuración corregida de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+      authDomain: "login-ad427.firebaseapp.com",
+      projectId: "login-ad427",
+      storageBucket: "login-ad427.appspot.com", // ← CORREGIDO
+      messagingSenderId: "115025387332",
+      appId: "1:115025387332:web:fbbff49b2ff60884c00111",
+      measurementId: "G-NNYTCBKH91"
+    };
+
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Registro de nuevo usuario
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("registerName").value.trim();
+      const phone = document.getElementById("registerPhone").value.trim();
+      const email = document.getElementById("registerEmail").value.trim();
+      const password = document.getElementById("registerPassword").value;
+
+      if (!name || !phone || !email || !password) {
+        alert("Por favor, completa todos los campos.");
+        return;
+      }
+
+      // Crear usuario en Firebase Auth
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const uid = userCredential.user.uid;
+
+          // Guardar datos adicionales en Firestore
+          return db.collection("users").doc(uid).set({
+            name: name,
+            phone: phone,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .then(() => {
+          alert("¡Usuario registrado exitosamente!");
+          window.location.href = "index.html";
+        })
+        .catch(error => {
+          console.error("Error en registro:", error);
+          alert("Error: " + error.message);
+        });
+    });
+  </script>
+
+</body>
+</html>
+
+
