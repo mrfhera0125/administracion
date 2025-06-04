@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Perfil</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f4f4f4;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    img {
+      display: block;
+      margin: 20px auto;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border: 2px solid #007BFF;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Editar Perfil</h2>
+    <img id="profilePreview" src="https://via.placeholder.com/120" alt="Imagen de perfil">
+    <input type="file" id="profileImage">
+    <input type="text" id="username" placeholder="Nombre de usuario">
+    <button onclick="saveProfile()">Guardar Cambios</button>
+  </div>
+
+  <!-- Firebase y lógica -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+      authDomain: "login-ad427.firebaseapp.com",
+      projectId: "login-ad427",
+      storageBucket: "login-ad427.appspot.com",
+      messagingSenderId: "115025387332",
+      appId: "1:115025387332:web:fbbff49b2ff60884c00111",
+      measurementId: "G-NNYTCBKH91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const usernameInput = document.getElementById("username");
+    const profileImageInput = document.getElementById("profileImage");
+    const profilePreview = document.getElementById("profilePreview");
+
+    // Mostrar datos actuales del usuario
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.username) usernameInput.value = data.username;
+          if (data.imageUrl) profilePreview.src = data.imageUrl;
+        }
+      } else {
+        alert("Debes iniciar sesión para editar tu perfil.");
+        // window.location.href = "/login.html"; // redirigir si quieres
+      }
+    });
+
+    // Vista previa al elegir nueva imagen
+    profileImageInput.addEventListener("change", () => {
+      const file = profileImageInput.files[0];
+      if (file) {
+        profilePreview.src = URL.createObjectURL(file);
+      }
+    });
+
+    // Guardar cambios
+    async function saveProfile() {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("No has iniciado sesión.");
+        return;
+      }
+
+      const uid = user.uid;
+      const username = usernameInput.value;
+      const file = profileImageInput.files[0];
+
+      let imageUrl = profilePreview.src;
+
+      if (file) {
+        const storageRef = ref(storage, `users/${uid}/profile.jpg`);
+        await uploadBytes(storageRef, file);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      await setDoc(doc(db, "users", uid), {
+        username: username,
+        imageUrl: imageUrl
+      });
+
+      alert("Perfil actualizado con éxito.");
+    }
+  </script>
+
+</body>
+</html>

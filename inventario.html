@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro de Gasto de Materiales</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      background: white;
+      margin: 40px auto;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #registrarBtn {
+      background-color: #007bff;
+    }
+
+    #facturaBtn {
+      background-color: #28a745;
+      display: none;
+    }
+
+    #facturaGeneralBtn {
+      background-color: #6c63ff;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .message {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Registro de Gasto de Materiales</h2>
+
+  <label for="materialSelect">Selecciona Material</label>
+  <select id="materialSelect">
+    <option value="">-- Elige un material --</option>
+  </select>
+
+  <label for="cantidadInput">Cantidad a gastar</label>
+  <input type="number" id="cantidadInput" min="1" placeholder="Cantidad" />
+
+  <button id="registrarBtn" onclick="registrarGasto()">Registrar Gasto</button>
+  <button id="facturaBtn" onclick="descargarFactura()">Descargar Factura</button>
+
+  <div id="message" class="message"></div>
+</div>
+
+<!-- Nuevo Formulario -->
+<div class="container">
+  <h3>Factura General de Materiales Comprados</h3>
+  <button id="facturaGeneralBtn" onclick="descargarFacturaGeneral()">Descargar Factura General</button>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+    authDomain: "login-ad427.firebaseapp.com",
+    projectId: "login-ad427",
+    storageBucket: "login-ad427.appspot.com",
+    messagingSenderId: "115025387332",
+    appId: "1:115025387332:web:fbbff49b2ff60884c00111"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const selectMaterial = document.getElementById('materialSelect');
+  const messageDiv = document.getElementById('message');
+  let ultimoGasto = null;
+
+  async function cargarMateriales() {
+    try {
+      const snapshot = await db.collection('inventario').get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = `${data.nombre} (Disponible: ${data.cantidad})`;
+        selectMaterial.appendChild(option);
+      });
+    } catch (error) {
+      messageDiv.textContent = "Error al cargar materiales.";
+      messageDiv.className = "message error";
+    }
+  }
+
+  cargarMateriales();
+
+  async function registrarGasto() {
+    messageDiv.textContent = "";
+    messageDiv.className = "message";
+
+    const materialId = selectMaterial.value;
+    const cantidadGasto = parseInt(document.getElementById('cantidadInput').value);
+
+    if (!materialId) {
+      messageDiv.textContent = "Por favor, selecciona un material.";
+      messageDiv.className = "message error";
+      return;
+    }
+
+    if (!cantidadGasto || cantidadGasto < 1) {
+      messageDiv.textContent = "Ingresa una cantidad válida mayor que cero.";
+      messageDiv.className = "message error";
+      return;
+    }
+
+    try {
+      const ref = db.collection('inventario').doc(materialId);
+      const doc = await ref.get();
+
+      if (!doc.exists) {
+        messageDiv.textContent = "Material no encontrado en inventario.";
+        messageDiv.className = "message error";
+        return;
+      }
+
+      const data = doc.data();
+      const currentQty = data.cantidad || 0;
+
+      if (cantidadGasto > currentQty) {
+        messageDiv.textContent = `No hay suficiente material. Disponible: ${currentQty}.`;
+        messageDiv.className = "message error";
+        return;
+      }
+
+      await ref.update({
+        cantidad: firebase.firestore.FieldValue.increment(-cantidadGasto)
+      });
+
+      ultimoGasto = {
+        nombre: data.nombre,
+        cantidad: cantidadGasto,
+        fecha: new Date().toLocaleString()
+      };
+
+      messageDiv.textContent = `Gasto registrado: ${cantidadGasto} unidades de ${data.nombre}.`;
+      messageDiv.className = "message success";
+
+      selectMaterial.options[selectMaterial.selectedIndex].textContent =
+        `${data.nombre} (Disponible: ${currentQty - cantidadGasto})`;
+
+      document.getElementById('cantidadInput').value = "";
+      document.getElementById('facturaBtn').style.display = 'block';
+
+    } catch (error) {
+      messageDiv.textContent = "Error al registrar el gasto.";
+      messageDiv.className = "message error";
+      console.error(error);
+    }
+  }
+
+  async function descargarFactura() {
+    if (!ultimoGasto) {
+      alert("Primero registra un gasto para generar la factura.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Factura de Gasto de Material", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Material: ${ultimoGasto.nombre}`, 20, 40);
+    doc.text(`Cantidad gastada: ${ultimoGasto.cantidad}`, 20, 50);
+    doc.text(`Fecha y hora: ${ultimoGasto.fecha}`, 20, 60);
+    doc.text("Gracias por su gestión.", 20, 80);
+
+    doc.save(`Factura-${ultimoGasto.nombre}-${Date.now()}.pdf`);
+  }
+
+  async function descargarFacturaGeneral() {
+    try {
+      const snapshot = await db.collection('inventario').get();
+      const materiales = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        materiales.push({
+          nombre: data.nombre,
+          cantidad: data.cantidad
+        });
+      });
+
+      if (materiales.length === 0) {
+        alert("No hay materiales registrados.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Factura General de Materiales Comprados", 20, 20);
+      doc.setFontSize(12);
+
+      let y = 40;
+      materiales.forEach((m, index) => {
+        doc.text(`${index + 1}. ${m.nombre} - Cantidad: ${m.cantidad}`, 20, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+
+      doc.save(`Factura-General-${Date.now()}.pdf`);
+
+    } catch (error) {
+      alert("Error al generar la factura general.");
+      console.error(error);
+    }
+  }
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Iniciar Sesión</title>
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1877f2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #145dbf;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    a {
+      color: #1877f2;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Correo" required>
+      <input type="password" id="loginPassword" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+      authDomain: "login-ad427.firebaseapp.com",
+      projectId: "login-ad427",
+      storageBucket: "login-ad427.appspot.com",
+      messagingSenderId: "115025387332",
+      appId: "1:115025387332:web:fbbff49b2ff60884c00111",
+      measurementId: "G-NNYTCBKH91"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          // Si el login es exitoso, redirigir a home.html
+          window.location.href = "home.html";
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+    });
+  </script>
+
+</body>
+</html>

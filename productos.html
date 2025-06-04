@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestión de Inventario</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Comprar Productos</h2>
+    <label>Nombre del Producto</label>
+    <input type="text" id="nombreProducto" placeholder="Ej: Cemento" />
+    
+    <label>Proveedor</label>
+    <input type="text" id="proveedor" placeholder="Ej: ConstruMax" />
+
+    <label>Cantidad Comprada</label>
+    <input type="number" id="cantidadCompra" min="1" />
+
+    <button onclick="comprarProducto()">Registrar Compra</button>
+
+    <div id="mensajeCompra" class="message"></div>
+  </div>
+
+  <div class="container">
+    <h2>Gastar Material</h2>
+
+    <label>Selecciona un material</label>
+    <select id="selectMaterial"></select>
+
+    <label>Cantidad a gastar</label>
+    <input type="number" id="cantidadGasto" min="1" />
+
+    <button onclick="gastarMaterial()">Registrar Gasto</button>
+
+    <div id="mensajeGasto" class="message"></div>
+  </div>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyC54eXWXaNruokvMhzVS9fIedx4YgY64vA",
+    authDomain: "login-ad427.firebaseapp.com",
+    projectId: "login-ad427",
+    storageBucket: "login-ad427.appspot.com",
+    messagingSenderId: "115025387332",
+    appId: "1:115025387332:web:fbbff49b2ff60884c00111"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Compra
+  async function comprarProducto() {
+    const nombre = document.getElementById('nombreProducto').value.trim();
+    const proveedor = document.getElementById('proveedor').value.trim();
+    const cantidad = parseInt(document.getElementById('cantidadCompra').value);
+    const msg = document.getElementById('mensajeCompra');
+
+    if (!nombre || !proveedor || !cantidad || cantidad <= 0) {
+      msg.textContent = "Completa todos los campos con valores válidos.";
+      msg.className = "message error";
+      return;
+    }
+
+    const docRef = db.collection('inventario').doc(nombre.toLowerCase());
+
+    try {
+      const doc = await docRef.get();
+      if (doc.exists) {
+        await docRef.update({
+          cantidad: firebase.firestore.FieldValue.increment(cantidad)
+        });
+      } else {
+        await docRef.set({ nombre, proveedor, cantidad });
+      }
+
+      msg.textContent = "Compra registrada correctamente.";
+      msg.className = "message success";
+      cargarMateriales(); // actualiza el selector
+
+      // limpiar
+      document.getElementById('nombreProducto').value = "";
+      document.getElementById('proveedor').value = "";
+      document.getElementById('cantidadCompra').value = "";
+
+    } catch (error) {
+      console.error(error);
+      msg.textContent = "Error al registrar la compra.";
+      msg.className = "message error";
+    }
+  }
+
+  // Gasto
+  async function gastarMaterial() {
+    const select = document.getElementById('selectMaterial');
+    const materialId = select.value;
+    const cantidad = parseInt(document.getElementById('cantidadGasto').value);
+    const msg = document.getElementById('mensajeGasto');
+
+    if (!materialId || !cantidad || cantidad <= 0) {
+      msg.textContent = "Selecciona un material y cantidad válida.";
+      msg.className = "message error";
+      return;
+    }
+
+    const ref = db.collection('inventario').doc(materialId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      msg.textContent = "Material no encontrado.";
+      msg.className = "message error";
+      return;
+    }
+
+    const data = doc.data();
+    if (cantidad > data.cantidad) {
+      msg.textContent = `No hay suficiente cantidad. Disponible: ${data.cantidad}`;
+      msg.className = "message error";
+      return;
+    }
+
+    try {
+      await ref.update({
+        cantidad: firebase.firestore.FieldValue.increment(-cantidad)
+      });
+
+      msg.textContent = `Se registró el gasto de ${cantidad} unidades de ${data.nombre}.`;
+      msg.className = "message success";
+      document.getElementById('cantidadGasto').value = "";
+      cargarMateriales();
+    } catch (error) {
+      console.error(error);
+      msg.textContent = "Error al registrar el gasto.";
+      msg.className = "message error";
+    }
+  }
+
+  // Cargar materiales
+  async function cargarMateriales() {
+    const select = document.getElementById('selectMaterial');
+    select.innerHTML = "<option value=''>-- Elige un material --</option>";
+    const snapshot = await db.collection('inventario').get();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const option = document.createElement('option');
+      option.value = doc.id;
+      option.textContent = `${data.nombre} (${data.cantidad} disponibles)`;
+      select.appendChild(option);
+    });
+  }
+
+  cargarMateriales();
+</script>
+</body>
+</html>
